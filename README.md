@@ -2,7 +2,7 @@
 
 API REST para gerenciamento de feature flags com rollout percentual, ativação por usuário e cache Redis.
 
-Construída com **FastAPI**, **PostgreSQL**, **Redis** e **Docker**.
+Construída com **FastAPI**, **SQLite**, **Redis** e **Docker**.
 
 ---
 
@@ -20,9 +20,9 @@ Construída com **FastAPI**, **PostgreSQL**, **Redis** e **Docker**.
 | Camada | Tecnologia |
 |---|---|
 | Framework | FastAPI |
-| Banco de dados | PostgreSQL 15 (SQLAlchemy ORM) |
-| Cache | Redis 7 |
-| Containerização | Docker + Docker Compose |
+| Banco de dados | SQLite (SQLAlchemy ORM) |
+| Cache | Redis |
+| Containerização | Docker |
 | Testes | Pytest + HTTPX |
 | Validação | Pydantic v2 |
 
@@ -33,24 +33,42 @@ Construída com **FastAPI**, **PostgreSQL**, **Redis** e **Docker**.
 ### Pré-requisitos
 
 - [Docker](https://docs.docker.com/get-docker/)
-- [Docker Compose](https://docs.docker.com/compose/)
+- Redis externo (ex: [Upstash](https://upstash.com) — free tier disponível)
 
 ### Passo a passo
 
 ```bash
 # Clone o repositório
-git clone https://github.com/seu-usuario/feature-flags-api.git
-cd feature-flags-api
+git clone https://github.com/imthur/Flagr.git
+cd Flagr
 
-# Sobe todos os serviços (API + PostgreSQL + Redis)
-docker-compose up --build
+# Copie e preencha as variáveis de ambiente
+cp .env.example .env
+
+# Sobe a API
+docker compose up --build
 ```
 
 A API estará disponível em `http://localhost:8000`.
 
 Documentação interativa (Swagger UI): `http://localhost:8000/docs`
 
-> **Sem Docker instalado?** Abra este repositório no [GitHub Codespaces](https://codespaces.new) — o Docker já vem pré-instalado e os comandos acima funcionam direto.
+---
+
+## Variáveis de ambiente
+
+Copie `.env.example` para `.env` e preencha:
+
+```env
+DATABASE_URL=sqlite:///./flagr.db
+
+REDIS_HOST=seu-endpoint.upstash.io
+REDIS_PORT=6379
+
+SECRET_KEY=supersecret
+```
+
+> Crie um Redis grátis em [upstash.com](https://upstash.com) e cole o endpoint acima.
 
 ---
 
@@ -119,29 +137,15 @@ O hash é baseado em SHA-256, garantindo que o mesmo usuário sempre receba o me
 
 - **Chave:** `feature_flag:{nome}`
 - **TTL:** 300 segundos (5 minutos)
-- **Leitura:** Redis → fallback para PostgreSQL → armazena no Redis
-- **Escrita:** atualiza no PostgreSQL → invalida a chave no Redis
-
----
-
-## Variáveis de ambiente
-
-```env
-POSTGRES_DB=feature_flags
-POSTGRES_USER=postgres
-POSTGRES_PASSWORD=postgres
-DATABASE_URL=postgresql://postgres:postgres@db:5432/feature_flags
-REDIS_HOST=redis
-REDIS_PORT=6379
-SECRET_KEY=supersecret
-```
+- **Leitura:** Redis → fallback para banco → armazena no Redis
+- **Escrita:** atualiza no banco → invalida a chave no Redis
 
 ---
 
 ## Rodando os testes
 
 ```bash
-docker-compose exec api pytest
+docker compose exec api pytest
 ```
 
 ---
