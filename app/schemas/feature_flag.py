@@ -15,6 +15,25 @@ class FeatureFlagCriar(BaseModel):
         default=None, description="Lista de IDs de usuários com acesso explícito"
     )
 
+    model_config = {
+        "json_schema_extra": {
+            "examples": [
+                {
+                    "summary": "Rollout para 30% dos usuários",
+                    "value": {"name": "novo-checkout", "enabled": True, "rollout_percentage": 30},
+                },
+                {
+                    "summary": "Ativação para usuários específicos",
+                    "value": {"name": "beta-dashboard", "enabled": True, "users": [1, 2, 99]},
+                },
+                {
+                    "summary": "Flag global ligada",
+                    "value": {"name": "dark-mode", "enabled": True},
+                },
+            ]
+        }
+    }
+
 
 class FeatureFlagAtualizar(BaseModel):
     """Schema para atualização parcial de uma feature flag."""
