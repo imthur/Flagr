@@ -27,11 +27,7 @@ class FeatureFlagService:
 
     def __init__(self, db: Session) -> None:
         self.repositorio = FeatureFlagRepository(db)
-        self.cache = redis.Redis(
-            host=configuracoes.redis_host,
-            port=configuracoes.redis_port,
-            decode_responses=True,
-        )
+        self.cache = redis.from_url(configuracoes.redis_url, decode_responses=True)
 
     # --- Cache ---
 
